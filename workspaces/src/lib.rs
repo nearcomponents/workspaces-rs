@@ -1,7 +1,7 @@
-mod network;
-mod rpc;
-mod types;
-mod worker;
+pub mod network;
+pub mod rpc;
+pub mod types;
+pub mod worker;
 
 pub mod prelude;
 
