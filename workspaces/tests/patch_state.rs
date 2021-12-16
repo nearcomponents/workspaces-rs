@@ -33,6 +33,7 @@ async fn view_status_state(
             .to_string()
             .into_bytes(),
             None,
+            None,
         )
         .await?;
 

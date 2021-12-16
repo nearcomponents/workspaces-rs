@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use near_primitives::types::{Balance, StoreKey};
+use near_primitives::types::{Balance, Gas, StoreKey};
 
 use crate::network::Info;
 use crate::network::{
@@ -83,6 +83,7 @@ where
         method: String,
         args: Vec<u8>,
         deposit: Option<Balance>,
+        gas: Option<Gas>,
     ) -> anyhow::Result<CallExecutionDetails> {
         self.client()
             .call(
@@ -90,7 +91,7 @@ where
                 contract.id().clone(),
                 method,
                 args,
-                None,
+                gas,
                 deposit,
             )
             .await

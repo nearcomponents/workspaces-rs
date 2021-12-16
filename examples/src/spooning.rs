@@ -62,6 +62,7 @@ async fn deploy_status_contract(
             .into_bytes(),
             // No need to worry about this one. Not transferring any tokens, so None:
             None,
+            None,
         )
         .await?;
 
