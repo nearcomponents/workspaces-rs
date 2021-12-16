@@ -49,7 +49,7 @@ impl Client {
         send_batch_tx_and_retry(self, signer, receiver_id, vec![action]).await
     }
 
-    pub(crate) async fn call(
+    pub async fn call(
         &self,
         signer: &InMemorySigner,
         contract_id: AccountId,

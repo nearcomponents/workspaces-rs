@@ -14,7 +14,7 @@ impl Account {
         &self.id
     }
 
-    pub(crate) fn signer(&self) -> &InMemorySigner {
+    pub fn signer(&self) -> &InMemorySigner {
         &self.signer
     }
 }
