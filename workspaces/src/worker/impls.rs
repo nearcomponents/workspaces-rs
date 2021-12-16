@@ -73,7 +73,7 @@ impl<T> Worker<T>
 where
     T: NetworkClient,
 {
-    pub(crate) fn client(&self) -> &Client {
+    pub fn client(&self) -> &Client {
         self.workspace.client()
     }
 
