@@ -43,7 +43,7 @@ impl InMemorySigner {
         Self(near_crypto::InMemorySigner::from_file(path))
     }
 
-    pub(crate) fn inner(&self) -> &near_crypto::InMemorySigner {
+    pub fn inner(&self) -> &near_crypto::InMemorySigner {
         &self.0
     }
 }
