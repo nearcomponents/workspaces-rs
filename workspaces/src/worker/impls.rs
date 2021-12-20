@@ -3,14 +3,16 @@ use std::collections::HashMap;
 use async_trait::async_trait;
 use near_primitives::types::{Balance, StoreKey};
 
-use crate::network::Info;
 use crate::network::{
     Account, AllowDevAccountCreation, CallExecution, CallExecutionDetails, Contract, NetworkClient,
-    NetworkInfo, StatePatcher, TopLevelAccountCreator,
+    NetworkInfo, StatePatcher, TopLevelAccountCreator, ViewResultDetails,
 };
-use crate::rpc::client::Client;
-use crate::types::{AccountId, InMemorySigner, SecretKey};
+use crate::network::{Info, Sandbox};
+use crate::rpc::client::{Client, DEFAULT_CALL_DEPOSIT, DEFAULT_CALL_FN_GAS};
+use crate::rpc::patch::ImportContractBuilder;
+use crate::types::{AccountId, Gas, InMemorySigner, SecretKey};
 use crate::worker::Worker;
+use crate::Network;
 
 impl<T> Clone for Worker<T> {
     fn clone(&self) -> Self {
@@ -67,6 +69,14 @@ where
     ) -> anyhow::Result<()> {
         self.workspace.patch_state(contract_id, key, value).await
     }
+
+    fn import_contract<'a, 'b>(
+        &'b self,
+        id: AccountId,
+        worker: &'a Worker<impl Network>,
+    ) -> ImportContractBuilder<'a, 'b> {
+        self.workspace.import_contract(id, worker)
+    }
 }
 
 impl<T> Worker<T>
@@ -80,18 +90,19 @@ where
     pub async fn call(
         &self,
         contract: &Contract,
-        method: String,
+        function: &str,
         args: Vec<u8>,
+        gas: Option<Gas>,
         deposit: Option<Balance>,
     ) -> anyhow::Result<CallExecutionDetails> {
         self.client()
             .call(
                 contract.signer(),
                 contract.id().clone(),
-                method,
+                function.into(),
                 args,
-                None,
-                deposit,
+                gas.unwrap_or(DEFAULT_CALL_FN_GAS),
+                deposit.unwrap_or(DEFAULT_CALL_DEPOSIT),
             )
             .await
             .map(Into::into)
@@ -100,10 +111,10 @@ where
     pub async fn view(
         &self,
         contract_id: AccountId,
-        method_name: String,
+        function: &str,
         args: Vec<u8>,
-    ) -> anyhow::Result<serde_json::Value> {
-        self.client().view(contract_id, method_name, args).await
+    ) -> anyhow::Result<ViewResultDetails> {
+        self.client().view(contract_id, function.into(), args).await
     }
 
     pub async fn view_state(
@@ -136,5 +147,13 @@ where
             .delete_account(signer, account_id, beneficiary_id)
             .await
             .map(Into::into)
+    }
+}
+
+impl Worker<Sandbox> {
+    pub fn root_account(&self) -> Account {
+        let account_id = self.info().root_id.clone();
+        let signer = self.workspace.root_signer();
+        Account::new(account_id, signer)
     }
 }
